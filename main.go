@@ -69,11 +69,10 @@ func main() {
 	//	TokenLookup: "header:x-auth-token",
 	//})
 
-	e.Logger.Infof("Listening on %s:%s", cfg.Host, cfg.Port)
-
 	uh := &handler.UsersHandler{Col: usersCol}
 	e.POST("/auth/register", uh.CreateUser)
 
+	e.Logger.Infof("Listening on %s:%s", cfg.Host, cfg.Port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)))
 }
 
