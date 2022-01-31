@@ -6,10 +6,7 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-
 	"github.com/labstack/gommon/random"
-
-
 )
 
 var (
@@ -17,13 +14,10 @@ var (
 )
 
 
-
 const (
 	//CorrelationID is a request id unique to the request being made
 	CorrelationID = "X-Correlation-ID"
 )
-
-
 
 func init() {
 	if err := cleanenv.ReadEnv(&cfg); err != nil {
@@ -45,7 +39,6 @@ func main() {
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)))
 }
 
-
 func addCorrelationID(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// generate correlation id
@@ -62,4 +55,3 @@ func addCorrelationID(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
-
