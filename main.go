@@ -22,6 +22,11 @@ func main() {
 	e := echo.New()
 	e.Logger.SetLevel(log.DEBUG)
 
+	//jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
+	//	SigningKey:  []byte(cfg.JwtTokenSecret),
+	//	TokenLookup: "header:x-auth-token",
+	//})
+
 	e.Logger.Infof("Listening on %s:%s", cfg.Host, cfg.Port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)))
 }
