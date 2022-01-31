@@ -34,8 +34,6 @@ func init() {
 func main() {
 	e := echo.New()
 	e.Logger.SetLevel(log.DEBUG)
-
-
 	e.Pre(addCorrelationID)
 	//jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
 	//	SigningKey:  []byte(cfg.JwtTokenSecret),
