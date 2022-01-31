@@ -14,6 +14,7 @@ import (
 	"github.com/go-study-projs/vue-evernote-api/config"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/labstack/gommon/random"
 )
@@ -60,6 +61,8 @@ func init() {
 func main() {
 	e := echo.New()
 	e.Logger.SetLevel(log.DEBUG)
+
+	e.Pre(middleware.RemoveTrailingSlash())
 	e.Pre(addCorrelationID)
 	//jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
 	//	SigningKey:  []byte(cfg.JwtTokenSecret),
