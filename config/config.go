@@ -8,4 +8,5 @@ type Properties struct {
 	DBPort         string `env:"DB_PORT" env-default:"27017"`
 	DBName         string `env:"DB_NAME" env-default:"vue-evernote"`
 	JwtTokenSecret string `env:"JWT_TOKEN_SECRET" env-default:"abrakadabra"`
+	UserCollection string `env:"USER_COL_NAME" env-default:"user"`
 }
