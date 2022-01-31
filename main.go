@@ -13,6 +13,7 @@ var (
 	cfg config.Properties
 )
 
+
 const (
 	//CorrelationID is a request id unique to the request being made
 	CorrelationID = "X-Correlation-ID"
@@ -27,15 +28,18 @@ func init() {
 func main() {
 	e := echo.New()
 	e.Logger.SetLevel(log.DEBUG)
+
 	e.Pre(addCorrelationID)
 	//jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
 	//	SigningKey:  []byte(cfg.JwtTokenSecret),
 	//	TokenLookup: "header:x-auth-token",
 	//})
 
+
 	e.Logger.Infof("Listening on %s:%s", cfg.Host, cfg.Port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)))
 }
+
 
 func addCorrelationID(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -53,3 +57,4 @@ func addCorrelationID(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
