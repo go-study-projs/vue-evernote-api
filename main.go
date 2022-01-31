@@ -15,7 +15,6 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-
 	"github.com/labstack/gommon/random"
 )
 
