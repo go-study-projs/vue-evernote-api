@@ -7,6 +7,7 @@ FROM golang:alpine AS builder
 # golang specific variables
 ENV GO111MODULE=on \
   CGO_ENABLED=0 \
+  GOPROXY="https://goproxy.cn,direct"\
   GOOS=linux \
   GOARCH=amd64
 
