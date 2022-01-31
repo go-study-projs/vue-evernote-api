@@ -5,6 +5,7 @@ import (
 	"github.com/go-study-projs/vue-evernote-api/config"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/labstack/gommon/random"
 )
@@ -12,7 +13,6 @@ import (
 var (
 	cfg config.Properties
 )
-
 
 const (
 	//CorrelationID is a request id unique to the request being made
@@ -28,12 +28,13 @@ func init() {
 func main() {
 	e := echo.New()
 	e.Logger.SetLevel(log.DEBUG)
+
+	e.Pre(middleware.RemoveTrailingSlash())
 	e.Pre(addCorrelationID)
 	//jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
 	//	SigningKey:  []byte(cfg.JwtTokenSecret),
 	//	TokenLookup: "header:x-auth-token",
 	//})
-
 
 	e.Logger.Infof("Listening on %s:%s", cfg.Host, cfg.Port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)))
