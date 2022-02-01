@@ -1,7 +1,7 @@
 version: "2.2"
 services:
-  app:
-    container_name: vue-evernote-api
+  web:
+    container_name: vue-evernote
     build: .
     expose:
       - "8080"
@@ -11,8 +11,11 @@ services:
       - mongo
     ports:
       - "8080:8080"
+
   mongo:
     image: mongo
     container_name: vue-evernote-db
     ports:
       - "27017:27017"
+
+
