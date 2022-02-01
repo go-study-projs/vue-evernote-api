@@ -17,7 +17,7 @@ import (
 
 func InsertUser(ctx context.Context, user model.User, collection dbInterface.CollectionAPI) (model.User, *echo.HTTPError) {
 	var existedUser model.User
-	res := collection.FindOne(ctx, bson.M{"username": user.Username})
+	res := FindOneUser(ctx, collection, bson.M{"username": user.Username})
 	err := res.Decode(&existedUser)
 	if err != nil && err != mongo.ErrNoDocuments {
 		log.Errorf("Unable to decode retrieved user: %v", err)
@@ -44,6 +44,11 @@ func InsertUser(ctx context.Context, user model.User, collection dbInterface.Col
 			echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "Unable to create the user"})
 	}
 	return model.User{ID: user.ID, Username: user.Username}, nil
+}
+
+func FindOneUser(ctx context.Context, uCollection dbInterface.CollectionAPI, uFilter interface{}) *mongo.SingleResult {
+	res := uCollection.FindOne(ctx, uFilter)
+	return res
 }
 
 func AuthenticateUser(ctx context.Context, reqUser model.User, collection dbInterface.CollectionAPI) (model.User, *echo.HTTPError) {
