@@ -7,11 +7,13 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/labstack/gommon/log"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type User struct {
-	Username string `json:"username" bson:"username" validate:"required,min=1,max=15"`
-	Password string `json:"password,omitempty" bson:"password" validate:"required,min=6,max=16"`
+	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Username string             `json:"username" bson:"username" validate:"required,min=3,max=15"`
+	Password string             `json:"password,omitempty" bson:"password" validate:"required,min=6,max=16"`
 }
 
 var (
@@ -23,7 +25,7 @@ func (u User) CreateToken() (string, error) {
 		log.Errorf("Configuration cannot be read : %v", err)
 	}
 	claims := jwt.MapClaims{}
-	//claims["authorized"] = u.IsAdmin
+	claims["user_id"] = u.ID.String()
 	claims["user_name"] = u.Username
 	claims["exp"] = time.Now().Add(time.Minute * 15).Unix()
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
