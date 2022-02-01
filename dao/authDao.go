@@ -3,6 +3,7 @@ package dao
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -37,13 +38,15 @@ func InsertUser(ctx context.Context, user model.User, collection dbInterface.Col
 	}
 	user.Password = string(hashedPassword)
 	user.ID = primitive.NewObjectID()
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 	_, err = collection.InsertOne(ctx, user)
 	if err != nil {
 		log.Errorf("Unable to insert the user :%+v", err)
 		return existedUser,
 			echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "Unable to create the user"})
 	}
-	return model.User{ID: user.ID, Username: user.Username}, nil
+	return user, nil
 }
 
 func FindOneUser(ctx context.Context, uCollection dbInterface.CollectionAPI, uFilter interface{}) *mongo.SingleResult {
