@@ -42,6 +42,7 @@ func init() {
 		log.Fatalf("Unable to connect to database : %v", err)
 	}
 	db = c.Database(cfg.DBName)
+
 	usersCol = db.Collection(cfg.UserCollection)
 
 	// add db index to username
@@ -64,15 +65,16 @@ func main() {
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Pre(addCorrelationID)
-	jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
-		SigningKey:  []byte(cfg.JwtTokenSecret),
-		TokenLookup: "header:x-auth-token",
-	})
+	//jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
+	//	SigningKey:  []byte(cfg.JwtTokenSecret),
+	//	TokenLookup: "header:x-auth-token",
+	//})
 
 	uh := &handler.UsersHandler{Col: usersCol}
 	e.POST("/auth/register", uh.CreateUser)
+	e.POST("/auth/login", uh.Login)
 
-	e.GET("/notebooks", uh.CreateUser, jwtMiddleware)
+	//e.GET("/notebooks", , jwtMiddleware)
 
 	e.Logger.Infof("Listening on %s:%s", cfg.Host, cfg.Port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)))
