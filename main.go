@@ -23,6 +23,7 @@ var (
 	db          *mongo.Database
 	userCol     *mongo.Collection
 	notebookCol *mongo.Collection
+	noteCol     *mongo.Collection
 	cfg         config.Properties
 )
 
@@ -31,6 +32,7 @@ const (
 	CorrelationID          = "X-Correlation-ID"
 	UserCollectionName     = "user"
 	NotebookCollectionName = "notebook"
+	NoteCollectionName     = "note"
 )
 
 func init() {
@@ -48,6 +50,7 @@ func init() {
 
 	userCol = db.Collection(UserCollectionName)
 	notebookCol = db.Collection(NotebookCollectionName)
+	noteCol = db.Collection(NoteCollectionName)
 
 	// add db index to username
 	isUserIndexUnique := true
@@ -82,7 +85,16 @@ func main() {
 	e.GET("/notebooks", nbh.GetNotebooks, jwtMiddleware)
 	e.POST("/notebooks", nbh.CreateNotebook, jwtMiddleware)
 	e.PATCH("/notebooks/:notebookId", nbh.UpdateNoteBook, jwtMiddleware)
-	e.DELETE("/notebooks/:notebookId", nbh.SoftDeleteNoteBook, jwtMiddleware)
+	e.DELETE("/notebooks/:notebookId", nbh.DeleteNoteBook, jwtMiddleware)
+
+	nh := &handler.NoteHandler{Col: noteCol}
+	e.POST("/notes/to/:notebookId", nh.CreateNote, jwtMiddleware)
+	e.GET("/notes/from/:notebookId", nh.GetNotes, jwtMiddleware)
+	e.DELETE("/notes/:noteId", nh.SoftDeleteNote, jwtMiddleware)
+	e.PATCH("/notes/:noteId", nh.UpdateNote, jwtMiddleware)
+	e.DELETE("/notes/:noteId/confirm", nh.DeleteNote, jwtMiddleware)
+	e.PATCH("/notes/:noteId/revert", nh.RevertNote, jwtMiddleware)
+	e.GET("/notes/trash", nh.GetNotesInTrash, jwtMiddleware)
 
 	e.Logger.Infof("Listening on %s:%s", cfg.Host, cfg.Port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)))

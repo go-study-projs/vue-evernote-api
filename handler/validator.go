@@ -23,3 +23,11 @@ type notebookValidator struct {
 func (nb *notebookValidator) Validate(i interface{}) error {
 	return nb.validator.Struct(i)
 }
+
+type noteValidator struct {
+	validator *validator.Validate
+}
+
+func (n *noteValidator) Validate(i interface{}) error {
+	return n.validator.Struct(i)
+}

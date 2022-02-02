@@ -27,7 +27,7 @@ func InsertNotebook(ctx context.Context, notebook model.Notebook, collection dbI
 	return notebook, nil
 }
 
-func UpdateNotebook(ctx context.Context,
+func ModifyNoteBook(ctx context.Context,
 	collection dbInterface.CollectionAPI,
 	notebookId primitive.ObjectID,
 	givenNotebook model.Notebook) *echo.HTTPError {
@@ -50,7 +50,7 @@ func UpdateNotebook(ctx context.Context,
 
 // utils.ParseToken(c.Request().Header.Get("x-auth-token"))
 
-func GetNotebooks(ctx context.Context, collection dbInterface.CollectionAPI,
+func FindNotebooks(ctx context.Context, collection dbInterface.CollectionAPI,
 	userId primitive.ObjectID) ([]model.Notebook, *echo.HTTPError) {
 
 	var notebooks []model.Notebook
