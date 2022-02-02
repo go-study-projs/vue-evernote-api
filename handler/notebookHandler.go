@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/go-study-projs/vue-evernote-api/dao"
 	"github.com/go-study-projs/vue-evernote-api/dbInterface"
 	"github.com/go-study-projs/vue-evernote-api/model"
@@ -22,6 +24,7 @@ func (h *NotebookHandler) GetNotebooks(c echo.Context) error {
 
 func (h *NotebookHandler) CreateNotebook(c echo.Context) error {
 	var notebook model.Notebook
+
 	c.Echo().Validator = &notebookValidator{validator: v}
 	if err := c.Bind(&notebook); err != nil {
 		log.Errorf("Unable to bind to user struct.")
@@ -43,7 +46,24 @@ func (h *NotebookHandler) CreateNotebook(c echo.Context) error {
 }
 
 func (h *NotebookHandler) UpdateNoteBook(c echo.Context) error {
-	return nil
+	var newNotebook model.Notebook
+
+	c.Echo().Validator = &notebookValidator{validator: v}
+	if err := c.Bind(&newNotebook); err != nil {
+		log.Errorf("Unable to bind to user struct.")
+		return utils.Json(c, http.StatusBadRequest, "Unable to parse the request payload.")
+	}
+
+	if err := c.Validate(newNotebook); err != nil {
+		log.Errorf("Unable to validate the requested body.")
+		return utils.Json(c, http.StatusBadRequest, "Unable to validate request body.")
+	}
+	notebookId, _ := primitive.ObjectIDFromHex(c.Param("notebookId"))
+	updatedNotebook, httpError := dao.UpdateNotebook(context.Background(), h.Col, notebookId, newNotebook)
+	if httpError != nil {
+		return httpError
+	}
+	return utils.Json(c, http.StatusOK, "修改成功", updatedNotebook)
 }
 
 func (h *NotebookHandler) SoftDeleteNoteBook(c echo.Context) error {
