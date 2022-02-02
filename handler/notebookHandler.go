@@ -19,7 +19,14 @@ type NotebookHandler struct {
 }
 
 func (h *NotebookHandler) GetNotebooks(c echo.Context) error {
-	return nil
+	userId := utils.ParseToken(c.Request().Header.Get("x-auth-token"))
+
+	notebooks, httpError := dao.GetNotebooks(context.Background(), h.Col, userId)
+	if httpError != nil {
+		return c.JSON(httpError.Code, httpError.Message)
+	}
+
+	return c.JSON(http.StatusOK, notebooks)
 }
 
 func (h *NotebookHandler) CreateNotebook(c echo.Context) error {
@@ -35,9 +42,8 @@ func (h *NotebookHandler) CreateNotebook(c echo.Context) error {
 		log.Errorf("Unable to validate the requested body.")
 		return utils.Json(c, http.StatusBadRequest, "Unable to validate request body.")
 	}
-
+	notebook.UserId = utils.ParseToken(c.Request().Header.Get("x-auth-token"))
 	resNotebook, httpError := dao.InsertNotebook(context.Background(), notebook, h.Col)
-	resNotebook.UserId = utils.ParseToken(c.Request().Header.Get("x-auth-token"))
 	if httpError != nil {
 		return httpError
 	}
@@ -59,11 +65,11 @@ func (h *NotebookHandler) UpdateNoteBook(c echo.Context) error {
 		return utils.Json(c, http.StatusBadRequest, "Unable to validate request body.")
 	}
 	notebookId, _ := primitive.ObjectIDFromHex(c.Param("notebookId"))
-	updatedNotebook, httpError := dao.UpdateNotebook(context.Background(), h.Col, notebookId, newNotebook)
+	httpError := dao.UpdateNotebook(context.Background(), h.Col, notebookId, newNotebook)
 	if httpError != nil {
 		return httpError
 	}
-	return utils.Json(c, http.StatusOK, "修改成功", updatedNotebook)
+	return utils.Json(c, http.StatusOK, "修改成功")
 }
 
 func (h *NotebookHandler) SoftDeleteNoteBook(c echo.Context) error {

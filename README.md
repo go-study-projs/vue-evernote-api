@@ -15,9 +15,9 @@ golang + jwt + echo rest api + mongoDB + docker
 
   - [x] 用户注册
   - [x]  用户登录
-  - [ ] 获取笔记本列表
+  - [x] 获取笔记本列表
   - [x] 创建笔记本
-  - [ ] 修改笔记本
+  - [x] 修改笔记本
   - [ ] 删除笔记本
   - [ ] 创建笔记
   - [ ] 获取笔记列表
@@ -28,10 +28,10 @@ golang + jwt + echo rest api + mongoDB + docker
   - [ ] 获取回收站笔记列表
 
 - 系统功能
-
+  - [ ] refreshToken过期续签
+  - [ ] 接入日志
   - [x] 容器化	
   - [ ] 单元测试
-  - [ ] 接入日志
   - [ ] CI : Github Action
 
   

@@ -30,23 +30,43 @@ func InsertNotebook(ctx context.Context, notebook model.Notebook, collection dbI
 func UpdateNotebook(ctx context.Context,
 	collection dbInterface.CollectionAPI,
 	notebookId primitive.ObjectID,
-	givenNotebook model.Notebook) (model.Notebook, *echo.HTTPError) {
+	givenNotebook model.Notebook) *echo.HTTPError {
 	var updatedNotebook model.Notebook
 	filter := bson.M{"_id": notebookId}
 	res := collection.FindOne(ctx, filter)
 	if err := res.Decode(&updatedNotebook); err != nil {
 		log.Errorf("unable to decode to notebook :%v", err)
-		return updatedNotebook,
-			echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the product"})
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the notebook"})
 	}
 	updatedNotebook.Title = givenNotebook.Title
 	//update the product, if err return 500
 	_, err := collection.UpdateOne(ctx, filter, bson.M{"$set": updatedNotebook})
 	if err != nil {
 		log.Errorf("Unable to update the notebook : %v", err)
-		return updatedNotebook,
-			echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to update the product"})
+		return echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to update the notebook"})
 	}
-	return updatedNotebook, nil
+	return nil
+}
 
+// utils.ParseToken(c.Request().Header.Get("x-auth-token"))
+
+func GetNotebooks(ctx context.Context, collection dbInterface.CollectionAPI,
+	userId primitive.ObjectID) ([]model.Notebook, *echo.HTTPError) {
+
+	var notebooks []model.Notebook
+
+	cursor, err := collection.Find(ctx, bson.M{"user_id": userId})
+	if err != nil {
+		log.Errorf("Unable to find the notebooks : %v", err)
+		return notebooks,
+			echo.NewHTTPError(http.StatusNotFound, model.ErrorMessage{Message: "unable to find the notebooks"})
+	}
+
+	err = cursor.All(ctx, &notebooks)
+	if err != nil {
+		log.Errorf("Unable to read the cursor : %v", err)
+		return notebooks,
+			echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to parse retrieved notebooks"})
+	}
+	return notebooks, nil
 }
