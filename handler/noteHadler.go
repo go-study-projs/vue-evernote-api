@@ -45,7 +45,14 @@ func (h NoteHandler) CreateNote(c echo.Context) error {
 }
 
 func (h NoteHandler) GetNotes(c echo.Context) error {
-	return nil
+	notebookId, _ := primitive.ObjectIDFromHex(c.Param("notebookId"))
+
+	notebooks, httpError := dao.FindNotes(context.Background(), h.Col, notebookId)
+	if httpError != nil {
+		return c.JSON(httpError.Code, httpError.Message)
+	}
+
+	return c.JSON(http.StatusOK, notebooks)
 }
 
 func (h NoteHandler) SoftDeleteNote(c echo.Context) error {
@@ -60,10 +67,10 @@ func (h NoteHandler) DeleteNote(c echo.Context) error {
 	return nil
 }
 
-func (h NoteHandler) RevertNote(context echo.Context) error {
+func (h NoteHandler) RevertNote(c echo.Context) error {
 	return nil
 }
 
-func (h NoteHandler) GetNotesInTrash(context echo.Context) error {
+func (h NoteHandler) GetNotesInTrash(c echo.Context) error {
 	return nil
 }

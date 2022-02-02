@@ -48,8 +48,6 @@ func ModifyNoteBook(ctx context.Context,
 	return nil
 }
 
-// utils.ParseToken(c.Request().Header.Get("x-auth-token"))
-
 func FindNotebooks(ctx context.Context, collection dbInterface.CollectionAPI,
 	userId primitive.ObjectID) ([]model.Notebook, *echo.HTTPError) {
 
