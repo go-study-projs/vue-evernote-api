@@ -29,7 +29,7 @@ func InsertNote(ctx context.Context, note model.Note, collection dbInterface.Col
 	_, err := collection.InsertOne(ctx, note)
 	if err != nil {
 		log.Errorf("Unable to insert the note :%+v", err)
-		return note, echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "Unable to create the note"})
+		return note, echo.NewHTTPError(http.StatusInternalServerError, model.Response{Msg: "Unable to create the note"})
 	}
 	return note, nil
 }
@@ -43,14 +43,14 @@ func FindNotes(ctx context.Context, collection dbInterface.CollectionAPI,
 	if err != nil {
 		log.Errorf("Unable to find the notes : %v", err)
 		return notes,
-			echo.NewHTTPError(http.StatusNotFound, model.ErrorMessage{Message: "unable to find the notes"})
+			echo.NewHTTPError(http.StatusNotFound, model.Response{Msg: "unable to find the notes"})
 	}
 
 	err = cursor.All(ctx, &notes)
 	if err != nil {
 		log.Errorf("Unable to read the cursor : %v", err)
 		return notes,
-			echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to parse retrieved notes"})
+			echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to parse retrieved notes"})
 	}
 	return notes, nil
 }
@@ -64,14 +64,14 @@ func FindNotesInTrash(ctx context.Context, collection dbInterface.CollectionAPI,
 	if err != nil {
 		log.Errorf("Unable to find the notes : %v", err)
 		return notes,
-			echo.NewHTTPError(http.StatusNotFound, model.ErrorMessage{Message: "unable to find the notes"})
+			echo.NewHTTPError(http.StatusNotFound, model.Response{Msg: "unable to find the notes"})
 	}
 
 	err = cursor.All(ctx, &notes)
 	if err != nil {
 		log.Errorf("Unable to read the cursor : %v", err)
 		return notes,
-			echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to parse retrieved notes"})
+			echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to parse retrieved notes"})
 	}
 	return notes, nil
 }
@@ -85,7 +85,7 @@ func ModifyNote(ctx context.Context, collection dbInterface.CollectionAPI,
 	res := collection.FindOne(ctx, bson.M{"_id": noteId})
 	if err := res.Decode(&updatedNote); err != nil {
 		log.Errorf("unable to decode to note :%v", err)
-		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the note"})
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to find the note"})
 	}
 
 	updatedNote.Title = givenNote.Title
@@ -94,7 +94,7 @@ func ModifyNote(ctx context.Context, collection dbInterface.CollectionAPI,
 	_, err := collection.UpdateOne(ctx, filter, bson.M{"$set": updatedNote})
 	if err != nil {
 		log.Errorf("Unable to update the note : %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to update the note"})
+		return echo.NewHTTPError(http.StatusInternalServerError, model.Response{Msg: "unable to update the note"})
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func SoftDeleteOrRevertNote(ctx context.Context, collection dbInterface.Collecti
 	res := collection.FindOne(ctx, bson.M{"_id": noteId})
 	if err := res.Decode(&note); err != nil {
 		log.Errorf("unable to decode to note :%v", err)
-		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the note"})
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to find the note"})
 	}
 
 	switch operateType {
@@ -121,7 +121,7 @@ func SoftDeleteOrRevertNote(ctx context.Context, collection dbInterface.Collecti
 	_, err := collection.UpdateOne(ctx, filter, bson.M{"$set": note})
 	if err != nil {
 		log.Errorf("Unable to update the note : %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to move the note to trash"})
+		return echo.NewHTTPError(http.StatusInternalServerError, model.Response{Msg: "unable to move the note to trash"})
 	}
 	return nil
 }
@@ -132,7 +132,7 @@ func DeleteNote(ctx context.Context, collection dbInterface.CollectionAPI, noteI
 	if err != nil {
 		log.Errorf("Unable to delete the note : %v", err)
 		return 0,
-			echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to delete the note"})
+			echo.NewHTTPError(http.StatusInternalServerError, model.Response{Msg: "unable to delete the note"})
 	}
 	return res.DeletedCount, nil
 }

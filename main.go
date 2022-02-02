@@ -81,7 +81,7 @@ func main() {
 	e.POST("/auth/register", uh.CreateUser)
 	e.POST("/auth/login", uh.Login)
 
-	nbh := &handler.NotebookHandler{Col: notebookCol}
+	nbh := &handler.NotebookHandler{Col: notebookCol, NCol: noteCol}
 	e.GET("/notebooks", nbh.GetNotebooks, jwtMiddleware)
 	e.POST("/notebooks", nbh.CreateNotebook, jwtMiddleware)
 	e.PATCH("/notebooks/:notebookId", nbh.UpdateNoteBook, jwtMiddleware)

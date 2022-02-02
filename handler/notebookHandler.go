@@ -15,7 +15,8 @@ import (
 )
 
 type NotebookHandler struct {
-	Col dbInterface.CollectionAPI
+	Col  dbInterface.CollectionAPI
+	NCol dbInterface.CollectionAPI
 }
 
 func (h *NotebookHandler) GetNotebooks(c echo.Context) error {
@@ -73,5 +74,12 @@ func (h *NotebookHandler) UpdateNoteBook(c echo.Context) error {
 }
 
 func (h *NotebookHandler) DeleteNoteBook(c echo.Context) error {
-	return nil
+	notebookId, _ := primitive.ObjectIDFromHex(c.Param("notebookId"))
+
+	_, httpError := dao.DeleteNoteBook(context.Background(), h.Col, h.NCol, notebookId)
+	if httpError != nil {
+		return httpError
+	}
+
+	return utils.Json(c, http.StatusOK, "删除成功")
 }

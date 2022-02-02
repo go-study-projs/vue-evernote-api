@@ -23,18 +23,18 @@ func InsertUser(ctx context.Context, collection dbInterface.CollectionAPI, user 
 	if err != nil && err != mongo.ErrNoDocuments {
 		log.Errorf("Unable to decode retrieved user: %v", err)
 		return existedUser,
-			echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "Unable to decode retrieved user"})
+			echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "Unable to decode retrieved user"})
 	}
 	if existedUser.Username != "" {
 		log.Errorf("User  %s already exists", user.Username)
 		return existedUser,
-			echo.NewHTTPError(http.StatusBadRequest, model.ErrorMessage{Message: "User already exists"})
+			echo.NewHTTPError(http.StatusBadRequest, model.Response{Msg: "User already exists"})
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
 	if err != nil {
 		log.Errorf("Unable to hash the password: %v", err)
 		return existedUser,
-			echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "Unable to process the password"})
+			echo.NewHTTPError(http.StatusInternalServerError, model.Response{Msg: "Unable to process the password"})
 	}
 	user.Password = string(hashedPassword)
 	user.ID = primitive.NewObjectID()
@@ -44,7 +44,7 @@ func InsertUser(ctx context.Context, collection dbInterface.CollectionAPI, user 
 	if err != nil {
 		log.Errorf("Unable to insert the user :%+v", err)
 		return existedUser,
-			echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "Unable to create the user"})
+			echo.NewHTTPError(http.StatusInternalServerError, model.Response{Msg: "Unable to create the user"})
 	}
 	return user, nil
 }
@@ -57,17 +57,17 @@ func AuthenticateUser(ctx context.Context, collection dbInterface.CollectionAPI,
 	if err != nil && err != mongo.ErrNoDocuments {
 		log.Errorf("Unable to decode retrieved user: %v", err)
 		return storedUser,
-			echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "Unable to decode retrieved user"})
+			echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "Unable to decode retrieved user"})
 	}
 	if err == mongo.ErrNoDocuments {
 		log.Errorf("User %s does not exist.", reqUser.Username)
 		return storedUser,
-			echo.NewHTTPError(http.StatusNotFound, model.ErrorMessage{Message: "User does not exist"})
+			echo.NewHTTPError(http.StatusNotFound, model.Response{Msg: "User does not exist"})
 	}
 	//validate the password
 	if !isCredValid(reqUser.Password, storedUser.Password) {
 		return storedUser,
-			echo.NewHTTPError(http.StatusUnauthorized, model.ErrorMessage{Message: "Credentials invalid"})
+			echo.NewHTTPError(http.StatusUnauthorized, model.Response{Msg: "Credentials invalid"})
 	}
 	return storedUser, nil
 }
