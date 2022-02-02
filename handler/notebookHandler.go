@@ -21,7 +21,7 @@ type NotebookHandler struct {
 func (h *NotebookHandler) GetNotebooks(c echo.Context) error {
 	userId := utils.ParseToken(c.Request().Header.Get("x-auth-token"))
 
-	notebooks, httpError := dao.GetNotebooks(context.Background(), h.Col, userId)
+	notebooks, httpError := dao.FindNotebooks(context.Background(), h.Col, userId)
 	if httpError != nil {
 		return c.JSON(httpError.Code, httpError.Message)
 	}
@@ -34,7 +34,7 @@ func (h *NotebookHandler) CreateNotebook(c echo.Context) error {
 
 	c.Echo().Validator = &notebookValidator{validator: v}
 	if err := c.Bind(&notebook); err != nil {
-		log.Errorf("Unable to bind to user struct.")
+		log.Errorf("Unable to bind to notebook struct.")
 		return utils.Json(c, http.StatusBadRequest, "Unable to parse the request payload.")
 	}
 
@@ -65,13 +65,13 @@ func (h *NotebookHandler) UpdateNoteBook(c echo.Context) error {
 		return utils.Json(c, http.StatusBadRequest, "Unable to validate request body.")
 	}
 	notebookId, _ := primitive.ObjectIDFromHex(c.Param("notebookId"))
-	httpError := dao.UpdateNotebook(context.Background(), h.Col, notebookId, newNotebook)
+	httpError := dao.ModifyNoteBook(context.Background(), h.Col, notebookId, newNotebook)
 	if httpError != nil {
 		return httpError
 	}
 	return utils.Json(c, http.StatusOK, "修改成功")
 }
 
-func (h *NotebookHandler) SoftDeleteNoteBook(c echo.Context) error {
+func (h *NotebookHandler) DeleteNoteBook(c echo.Context) error {
 	return nil
 }
