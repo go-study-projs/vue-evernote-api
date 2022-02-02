@@ -14,6 +14,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type NoteOperateType int
+
+const (
+	SoftDelete NoteOperateType = iota
+	Revert
+)
+
 func InsertNote(ctx context.Context, note model.Note, collection dbInterface.CollectionAPI) (model.Note, *echo.HTTPError) {
 
 	note.ID = primitive.NewObjectID()
@@ -71,7 +78,8 @@ func ModifyNote(ctx context.Context, collection dbInterface.CollectionAPI,
 	return nil
 }
 
-func SoftDeleteNote(ctx context.Context, collection dbInterface.CollectionAPI, noteId primitive.ObjectID) *echo.HTTPError {
+func SoftDeleteOrRevertNote(ctx context.Context, collection dbInterface.CollectionAPI,
+	noteId primitive.ObjectID, operateType NoteOperateType) *echo.HTTPError {
 
 	var note model.Note
 	filter := bson.M{"_id": noteId}
@@ -82,7 +90,12 @@ func SoftDeleteNote(ctx context.Context, collection dbInterface.CollectionAPI, n
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the note"})
 	}
 
-	note.IsDeleted = true
+	switch operateType {
+	case SoftDelete:
+		note.IsDeleted = true
+	case Revert:
+		note.IsDeleted = false
+	}
 
 	_, err := collection.UpdateOne(ctx, filter, bson.M{"$set": note})
 	if err != nil {
