@@ -59,7 +59,7 @@ func CreateToken(u model.User) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["user_id"] = u.ID.String()
 	claims["user_name"] = u.Username
-	claims["exp"] = time.Now().Add(time.Minute * 1500).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 15).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(prop.JwtTokenSecret))
 	if err != nil {
