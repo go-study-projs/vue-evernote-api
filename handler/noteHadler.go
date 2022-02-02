@@ -88,7 +88,14 @@ func (h NoteHandler) UpdateNote(c echo.Context) error {
 }
 
 func (h NoteHandler) DeleteNote(c echo.Context) error {
-	return nil
+	noteId, _ := primitive.ObjectIDFromHex(c.Param("noteId"))
+
+	_, httpError := dao.DeleteNote(context.Background(), h.Col, noteId)
+	if httpError != nil {
+		return httpError
+	}
+
+	return utils.Json(c, http.StatusOK, "删除成功")
 }
 
 func (h NoteHandler) RevertNote(c echo.Context) error {

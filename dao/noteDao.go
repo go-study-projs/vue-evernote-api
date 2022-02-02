@@ -91,3 +91,14 @@ func SoftDeleteNote(ctx context.Context, collection dbInterface.CollectionAPI, n
 	}
 	return nil
 }
+
+func DeleteNote(ctx context.Context, collection dbInterface.CollectionAPI, noteId primitive.ObjectID) (int64, *echo.HTTPError) {
+
+	res, err := collection.DeleteOne(ctx, bson.M{"_id": noteId})
+	if err != nil {
+		log.Errorf("Unable to delete the note : %v", err)
+		return 0,
+			echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to delete the note"})
+	}
+	return res.DeletedCount, nil
+}
