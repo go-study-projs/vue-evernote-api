@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
+
 	"github.com/go-study-projs/vue-evernote-api/dbInterface"
 	"github.com/go-study-projs/vue-evernote-api/model"
 	"github.com/labstack/echo/v4"
@@ -23,4 +25,28 @@ func InsertNotebook(ctx context.Context, notebook model.Notebook, collection dbI
 		return notebook, echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "Unable to create the notebook"})
 	}
 	return notebook, nil
+}
+
+func UpdateNotebook(ctx context.Context,
+	collection dbInterface.CollectionAPI,
+	notebookId primitive.ObjectID,
+	givenNotebook model.Notebook) (model.Notebook, *echo.HTTPError) {
+	var updatedNotebook model.Notebook
+	filter := bson.M{"_id": notebookId}
+	res := collection.FindOne(ctx, filter)
+	if err := res.Decode(&updatedNotebook); err != nil {
+		log.Errorf("unable to decode to notebook :%v", err)
+		return updatedNotebook,
+			echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the product"})
+	}
+	updatedNotebook.Title = givenNotebook.Title
+	//update the product, if err return 500
+	_, err := collection.UpdateOne(ctx, filter, bson.M{"$set": updatedNotebook})
+	if err != nil {
+		log.Errorf("Unable to update the notebook : %v", err)
+		return updatedNotebook,
+			echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to update the product"})
+	}
+	return updatedNotebook, nil
+
 }
