@@ -15,3 +15,11 @@ type userValidator struct {
 func (u *userValidator) Validate(i interface{}) error {
 	return u.validator.Struct(i)
 }
+
+type notebookValidator struct {
+	validator *validator.Validate
+}
+
+func (nb *notebookValidator) Validate(i interface{}) error {
+	return nb.validator.Struct(i)
+}

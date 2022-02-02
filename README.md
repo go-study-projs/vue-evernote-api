@@ -14,9 +14,9 @@ golang + jwt + echo rest api + mongoDB + docker
 - 完成接口
 
   - [x] 用户注册
-  - [ ]  用户登录
+  - [x]  用户登录
   - [ ] 获取笔记本列表
-  - [ ] 创建笔记本
+  - [x] 创建笔记本
   - [ ] 修改笔记本
   - [ ] 删除笔记本
   - [ ] 创建笔记
@@ -31,6 +31,7 @@ golang + jwt + echo rest api + mongoDB + docker
 
   - [x] 容器化	
   - [ ] 单元测试
+  - [ ] 接入日志
   - [ ] CI : Github Action
 
   
