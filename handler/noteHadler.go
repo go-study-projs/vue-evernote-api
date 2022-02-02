@@ -47,12 +47,12 @@ func (h NoteHandler) CreateNote(c echo.Context) error {
 func (h NoteHandler) GetNotes(c echo.Context) error {
 	notebookId, _ := primitive.ObjectIDFromHex(c.Param("notebookId"))
 
-	notebooks, httpError := dao.FindNotes(context.Background(), h.Col, notebookId)
+	notes, httpError := dao.FindNotes(context.Background(), h.Col, notebookId)
 	if httpError != nil {
 		return c.JSON(httpError.Code, httpError.Message)
 	}
 
-	return c.JSON(http.StatusOK, notebooks)
+	return c.JSON(http.StatusOK, notes)
 }
 
 func (h NoteHandler) SoftDeleteNote(c echo.Context) error {
@@ -60,7 +60,24 @@ func (h NoteHandler) SoftDeleteNote(c echo.Context) error {
 }
 
 func (h NoteHandler) UpdateNote(c echo.Context) error {
-	return nil
+	var note model.Note
+
+	c.Echo().Validator = &noteValidator{validator: v}
+	if err := c.Bind(&note); err != nil {
+		log.Errorf("Unable to bind to note struct.")
+		return utils.Json(c, http.StatusBadRequest, "Unable to parse the request payload.")
+	}
+
+	if err := c.Validate(note); err != nil {
+		log.Errorf("Unable to validate the requested body.")
+		return utils.Json(c, http.StatusBadRequest, "Unable to validate request body.")
+	}
+	noteId, _ := primitive.ObjectIDFromHex(c.Param("noteId"))
+	httpError := dao.ModifyNote(context.Background(), h.Col, noteId, note)
+	if httpError != nil {
+		return httpError
+	}
+	return utils.Json(c, http.StatusOK, "修改成功")
 }
 
 func (h NoteHandler) DeleteNote(c echo.Context) error {

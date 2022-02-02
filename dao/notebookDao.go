@@ -39,7 +39,6 @@ func ModifyNoteBook(ctx context.Context,
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the notebook"})
 	}
 	updatedNotebook.Title = givenNotebook.Title
-	//update the product, if err return 500
 	_, err := collection.UpdateOne(ctx, filter, bson.M{"$set": updatedNotebook})
 	if err != nil {
 		log.Errorf("Unable to update the notebook : %v", err)

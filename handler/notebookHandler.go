@@ -56,7 +56,7 @@ func (h *NotebookHandler) UpdateNoteBook(c echo.Context) error {
 
 	c.Echo().Validator = &notebookValidator{validator: v}
 	if err := c.Bind(&newNotebook); err != nil {
-		log.Errorf("Unable to bind to user struct.")
+		log.Errorf("Unable to bind to notebook struct.")
 		return utils.Json(c, http.StatusBadRequest, "Unable to parse the request payload.")
 	}
 
