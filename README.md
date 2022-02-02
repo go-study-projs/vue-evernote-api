@@ -25,7 +25,7 @@ golang + jwt + echo rest api + mongoDB + docker
   - [x] 修改笔记
   - [x] 将记从回收站彻底删除
   - [x] 回收站恢复笔记
-  - [ ] 获取回收站笔记列表
+  - [x] 获取回收站笔记列表
 
 - 系统功能
   - [ ] refreshToken过期续签

@@ -55,6 +55,27 @@ func FindNotes(ctx context.Context, collection dbInterface.CollectionAPI,
 	return notes, nil
 }
 
+func FindNotesInTrash(ctx context.Context, collection dbInterface.CollectionAPI,
+	userId primitive.ObjectID) ([]model.Note, *echo.HTTPError) {
+
+	var notes []model.Note
+
+	cursor, err := collection.Find(ctx, bson.M{"user_id": userId, "is_deleted": true})
+	if err != nil {
+		log.Errorf("Unable to find the notes : %v", err)
+		return notes,
+			echo.NewHTTPError(http.StatusNotFound, model.ErrorMessage{Message: "unable to find the notes"})
+	}
+
+	err = cursor.All(ctx, &notes)
+	if err != nil {
+		log.Errorf("Unable to read the cursor : %v", err)
+		return notes,
+			echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to parse retrieved notes"})
+	}
+	return notes, nil
+}
+
 func ModifyNote(ctx context.Context, collection dbInterface.CollectionAPI,
 	noteId primitive.ObjectID, givenNote model.Note) *echo.HTTPError {
 

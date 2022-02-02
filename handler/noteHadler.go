@@ -49,10 +49,10 @@ func (h NoteHandler) GetNotes(c echo.Context) error {
 
 	notes, httpError := dao.FindNotes(context.Background(), h.Col, notebookId)
 	if httpError != nil {
-		return c.JSON(httpError.Code, httpError.Message)
+		return httpError
 	}
 
-	return c.JSON(http.StatusOK, notes)
+	return utils.Json(c, http.StatusOK, "", notes)
 }
 
 func (h NoteHandler) MoveToTrash(c echo.Context) error {
@@ -110,5 +110,13 @@ func (h NoteHandler) RevertNote(c echo.Context) error {
 }
 
 func (h NoteHandler) GetNotesInTrash(c echo.Context) error {
-	return nil
+
+	userId := utils.ParseToken(c.Request().Header.Get("x-auth-token"))
+
+	notes, httpError := dao.FindNotesInTrash(context.Background(), h.Col, userId)
+	if httpError != nil {
+		return httpError
+	}
+
+	return utils.Json(c, http.StatusOK, "", notes)
 }
