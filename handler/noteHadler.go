@@ -58,7 +58,7 @@ func (h NoteHandler) GetNotes(c echo.Context) error {
 func (h NoteHandler) MoveToTrash(c echo.Context) error {
 	noteId, _ := primitive.ObjectIDFromHex(c.Param("noteId"))
 
-	httpError := dao.SoftDeleteNote(context.Background(), h.Col, noteId)
+	httpError := dao.SoftDeleteOrRevertNote(context.Background(), h.Col, noteId, dao.SoftDelete)
 	if httpError != nil {
 		return httpError
 	}
@@ -99,7 +99,14 @@ func (h NoteHandler) DeleteNote(c echo.Context) error {
 }
 
 func (h NoteHandler) RevertNote(c echo.Context) error {
-	return nil
+	noteId, _ := primitive.ObjectIDFromHex(c.Param("noteId"))
+
+	httpError := dao.SoftDeleteOrRevertNote(context.Background(), h.Col, noteId, dao.Revert)
+	if httpError != nil {
+		return httpError
+	}
+
+	return utils.Json(c, http.StatusOK, "已从回收站恢复")
 }
 
 func (h NoteHandler) GetNotesInTrash(c echo.Context) error {
