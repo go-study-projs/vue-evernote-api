@@ -55,8 +55,15 @@ func (h NoteHandler) GetNotes(c echo.Context) error {
 	return c.JSON(http.StatusOK, notes)
 }
 
-func (h NoteHandler) SoftDeleteNote(c echo.Context) error {
-	return nil
+func (h NoteHandler) MoveToTrash(c echo.Context) error {
+	noteId, _ := primitive.ObjectIDFromHex(c.Param("noteId"))
+
+	httpError := dao.SoftDeleteNote(context.Background(), h.Col, noteId)
+	if httpError != nil {
+		return httpError
+	}
+
+	return utils.Json(c, http.StatusOK, "已放入回收站")
 }
 
 func (h NoteHandler) UpdateNote(c echo.Context) error {

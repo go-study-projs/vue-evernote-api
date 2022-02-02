@@ -48,24 +48,46 @@ func FindNotes(ctx context.Context, collection dbInterface.CollectionAPI,
 	return notes, nil
 }
 
-func ModifyNote(ctx context.Context,
-	collection dbInterface.CollectionAPI,
-	noteId primitive.ObjectID,
-	givenNote model.Note) *echo.HTTPError {
+func ModifyNote(ctx context.Context, collection dbInterface.CollectionAPI,
+	noteId primitive.ObjectID, givenNote model.Note) *echo.HTTPError {
+
 	var updatedNote model.Note
 	filter := bson.M{"_id": noteId}
-	res := collection.FindOne(ctx, filter)
+
+	res := collection.FindOne(ctx, bson.M{"_id": noteId})
 	if err := res.Decode(&updatedNote); err != nil {
 		log.Errorf("unable to decode to note :%v", err)
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the note"})
 	}
+
 	updatedNote.Title = givenNote.Title
 	updatedNote.Content = givenNote.Content
 
 	_, err := collection.UpdateOne(ctx, filter, bson.M{"$set": updatedNote})
 	if err != nil {
-		log.Errorf("Unable to update the notebook : %v", err)
+		log.Errorf("Unable to update the note : %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to update the note"})
+	}
+	return nil
+}
+
+func SoftDeleteNote(ctx context.Context, collection dbInterface.CollectionAPI, noteId primitive.ObjectID) *echo.HTTPError {
+
+	var note model.Note
+	filter := bson.M{"_id": noteId}
+
+	res := collection.FindOne(ctx, bson.M{"_id": noteId})
+	if err := res.Decode(&note); err != nil {
+		log.Errorf("unable to decode to note :%v", err)
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the note"})
+	}
+
+	note.IsDeleted = true
+
+	_, err := collection.UpdateOne(ctx, filter, bson.M{"$set": note})
+	if err != nil {
+		log.Errorf("Unable to update the note : %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to move the note to trash"})
 	}
 	return nil
 }
