@@ -22,7 +22,7 @@ func InsertNotebook(ctx context.Context, notebook model.Notebook, collection dbI
 	_, err := collection.InsertOne(ctx, notebook)
 	if err != nil {
 		log.Errorf("Unable to insert the notebook :%+v", err)
-		return notebook, echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "Unable to create the notebook"})
+		return notebook, echo.NewHTTPError(http.StatusInternalServerError, model.Response{Msg: "Unable to create the notebook"})
 	}
 	return notebook, nil
 }
@@ -36,13 +36,13 @@ func ModifyNoteBook(ctx context.Context,
 	res := collection.FindOne(ctx, filter)
 	if err := res.Decode(&updatedNotebook); err != nil {
 		log.Errorf("unable to decode to notebook :%v", err)
-		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to find the notebook"})
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to find the notebook"})
 	}
 	updatedNotebook.Title = givenNotebook.Title
 	_, err := collection.UpdateOne(ctx, filter, bson.M{"$set": updatedNotebook})
 	if err != nil {
 		log.Errorf("Unable to update the notebook : %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, model.ErrorMessage{Message: "unable to update the notebook"})
+		return echo.NewHTTPError(http.StatusInternalServerError, model.Response{Msg: "unable to update the notebook"})
 	}
 	return nil
 }
@@ -56,14 +56,44 @@ func FindNotebooks(ctx context.Context, collection dbInterface.CollectionAPI,
 	if err != nil {
 		log.Errorf("Unable to find the notebooks : %v", err)
 		return notebooks,
-			echo.NewHTTPError(http.StatusNotFound, model.ErrorMessage{Message: "unable to find the notebooks"})
+			echo.NewHTTPError(http.StatusNotFound, model.Response{Msg: "unable to find the notebooks"})
 	}
 
 	err = cursor.All(ctx, &notebooks)
 	if err != nil {
 		log.Errorf("Unable to read the cursor : %v", err)
 		return notebooks,
-			echo.NewHTTPError(http.StatusUnprocessableEntity, model.ErrorMessage{Message: "unable to parse retrieved notebooks"})
+			echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to parse retrieved notebooks"})
 	}
 	return notebooks, nil
+}
+
+func DeleteNoteBook(ctx context.Context, collection dbInterface.CollectionAPI,
+	noteCollection dbInterface.CollectionAPI, notebookId primitive.ObjectID) (int64, *echo.HTTPError) {
+
+	var notes []model.Note
+
+	cursor, err := noteCollection.Find(ctx, bson.M{"notebook_id": notebookId})
+	if err != nil {
+		log.Errorf("Unable to find the notes : %v", err)
+		return 0, echo.NewHTTPError(http.StatusNotFound, model.Response{Msg: "unable to find the notes"})
+	}
+
+	err = cursor.All(ctx, &notes)
+	if err != nil {
+		log.Errorf("Unable to read the cursor : %v", err)
+		return 0, echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to parse retrieved notes"})
+	}
+
+	if notes != nil && len(notes) > 0 {
+		return 0, echo.NewHTTPError(http.StatusBadRequest, model.Response{Msg: "笔记本不为空或者回收站中还有属于当前笔记本的笔记"})
+	}
+
+	res, err := collection.DeleteOne(ctx, bson.M{"_id": notebookId})
+	if err != nil {
+		log.Errorf("Unable to delete the notebook : %v", err)
+		return 0,
+			echo.NewHTTPError(http.StatusInternalServerError, model.Response{Msg: "unable to delete the notebook"})
+	}
+	return res.DeletedCount, nil
 }
