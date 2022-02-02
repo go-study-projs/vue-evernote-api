@@ -20,14 +20,17 @@ import (
 )
 
 var (
-	db       *mongo.Database
-	usersCol *mongo.Collection
-	cfg      config.Properties
+	db          *mongo.Database
+	userCol     *mongo.Collection
+	notebookCol *mongo.Collection
+	cfg         config.Properties
 )
 
 const (
 	//CorrelationID is a request id unique to the request being made
-	CorrelationID = "X-Correlation-ID"
+	CorrelationID          = "X-Correlation-ID"
+	UserCollectionName     = "user"
+	NotebookCollectionName = "notebook"
 )
 
 func init() {
@@ -43,7 +46,8 @@ func init() {
 	}
 	db = c.Database(cfg.DBName)
 
-	usersCol = db.Collection(cfg.UserCollection)
+	userCol = db.Collection(UserCollectionName)
+	notebookCol = db.Collection(NotebookCollectionName)
 
 	// add db index to username
 	isUserIndexUnique := true
@@ -53,7 +57,7 @@ func init() {
 			Unique: &isUserIndexUnique,
 		},
 	}
-	_, err = usersCol.Indexes().CreateOne(ctx, indexModel)
+	_, err = userCol.Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
 		log.Fatalf("Unable to create an index : %+v", err)
 	}
@@ -65,16 +69,20 @@ func main() {
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Pre(addCorrelationID)
-	//jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
-	//	SigningKey:  []byte(cfg.JwtTokenSecret),
-	//	TokenLookup: "header:x-auth-token",
-	//})
+	jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey:  []byte(cfg.JwtTokenSecret),
+		TokenLookup: "header:x-auth-token",
+	})
 
-	uh := &handler.UsersHandler{Col: usersCol}
+	uh := &handler.UserHandler{Col: userCol}
 	e.POST("/auth/register", uh.CreateUser)
 	e.POST("/auth/login", uh.Login)
 
-	//e.GET("/notebooks", , jwtMiddleware)
+	nbh := &handler.NotebookHandler{Col: notebookCol}
+	e.GET("/notebooks", nbh.GetNotebooks, jwtMiddleware)
+	e.POST("/notebooks", nbh.CreateNotebook, jwtMiddleware)
+	e.PATCH("/notebooks/:notebookId", nbh.UpdateNoteBook, jwtMiddleware)
+	e.DELETE("/notebooks/:notebookId", nbh.SoftDeleteNoteBook, jwtMiddleware)
 
 	e.Logger.Infof("Listening on %s:%s", cfg.Host, cfg.Port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)))

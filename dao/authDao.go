@@ -16,9 +16,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func InsertUser(ctx context.Context, user model.User, collection dbInterface.CollectionAPI) (model.User, *echo.HTTPError) {
+func InsertUser(ctx context.Context, collection dbInterface.CollectionAPI, user model.User) (model.User, *echo.HTTPError) {
 	var existedUser model.User
-	res := FindOneUser(ctx, collection, bson.M{"username": user.Username})
+	res := collection.FindOne(ctx, bson.M{"username": user.Username})
 	err := res.Decode(&existedUser)
 	if err != nil && err != mongo.ErrNoDocuments {
 		log.Errorf("Unable to decode retrieved user: %v", err)
@@ -49,12 +49,7 @@ func InsertUser(ctx context.Context, user model.User, collection dbInterface.Col
 	return user, nil
 }
 
-func FindOneUser(ctx context.Context, uCollection dbInterface.CollectionAPI, uFilter interface{}) *mongo.SingleResult {
-	res := uCollection.FindOne(ctx, uFilter)
-	return res
-}
-
-func AuthenticateUser(ctx context.Context, reqUser model.User, collection dbInterface.CollectionAPI) (model.User, *echo.HTTPError) {
+func AuthenticateUser(ctx context.Context, collection dbInterface.CollectionAPI, reqUser model.User) (model.User, *echo.HTTPError) {
 	var storedUser model.User //user in db
 	// check whether the user exists or not
 	res := collection.FindOne(ctx, bson.M{"username": reqUser.Username})
@@ -74,7 +69,7 @@ func AuthenticateUser(ctx context.Context, reqUser model.User, collection dbInte
 		return storedUser,
 			echo.NewHTTPError(http.StatusUnauthorized, model.ErrorMessage{Message: "Credentials invalid"})
 	}
-	return model.User{Username: storedUser.Username}, nil
+	return storedUser, nil
 }
 
 func isCredValid(givenPwd, storedPwd string) bool {
