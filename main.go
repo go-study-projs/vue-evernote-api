@@ -83,15 +83,15 @@ func main() {
 
 	nbh := &handler.NotebookHandler{Col: notebookCol, NCol: noteCol}
 	e.GET("/notebooks", nbh.GetNotebooks, jwtMiddleware)
-	e.POST("/notebooks", nbh.CreateNotebook, jwtMiddleware)
-	e.PATCH("/notebooks/:notebookId", nbh.UpdateNoteBook, jwtMiddleware)
+	e.POST("/notebooks", nbh.CreateNotebook, middleware.BodyLimit("1M"), jwtMiddleware)
+	e.PATCH("/notebooks/:notebookId", nbh.UpdateNoteBook, middleware.BodyLimit("1M"), jwtMiddleware)
 	e.DELETE("/notebooks/:notebookId", nbh.DeleteNoteBook, jwtMiddleware)
 
 	nh := &handler.NoteHandler{Col: noteCol}
-	e.POST("/notes/to/:notebookId", nh.CreateNote, jwtMiddleware)
+	e.POST("/notes/to/:notebookId", nh.CreateNote, middleware.BodyLimit("4M"), jwtMiddleware)
 	e.GET("/notes/from/:notebookId", nh.GetNotes, jwtMiddleware)
 	e.DELETE("/notes/:noteId", nh.MoveToTrash, jwtMiddleware)
-	e.PATCH("/notes/:noteId", nh.UpdateNote, jwtMiddleware)
+	e.PATCH("/notes/:noteId", nh.UpdateNote, middleware.BodyLimit("4M"), jwtMiddleware)
 	e.DELETE("/notes/:noteId/confirm", nh.DeleteNote, jwtMiddleware)
 	e.PATCH("/notes/:noteId/revert", nh.RevertNote, jwtMiddleware)
 	e.GET("/notes/trash", nh.GetNotesInTrash, jwtMiddleware)
