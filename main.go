@@ -90,7 +90,7 @@ func main() {
 	nh := &handler.NoteHandler{Col: noteCol}
 	e.POST("/notes/to/:notebookId", nh.CreateNote, jwtMiddleware)
 	e.GET("/notes/from/:notebookId", nh.GetNotes, jwtMiddleware)
-	e.DELETE("/notes/:noteId", nh.SoftDeleteNote, jwtMiddleware)
+	e.DELETE("/notes/:noteId", nh.MoveToTrash, jwtMiddleware)
 	e.PATCH("/notes/:noteId", nh.UpdateNote, jwtMiddleware)
 	e.DELETE("/notes/:noteId/confirm", nh.DeleteNote, jwtMiddleware)
 	e.PATCH("/notes/:noteId/revert", nh.RevertNote, jwtMiddleware)
