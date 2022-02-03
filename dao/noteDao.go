@@ -37,9 +37,15 @@ func InsertNote(ctx context.Context, note model.Note, collection dbInterface.Col
 func FindNotes(ctx context.Context, collection dbInterface.CollectionAPI,
 	notebookId primitive.ObjectID) ([]model.Note, *echo.HTTPError) {
 
+	return findNotesViaFilter(ctx, collection, bson.M{"notebook_id": notebookId, "is_deleted": false})
+}
+
+func findNotesViaFilter(ctx context.Context, collection dbInterface.CollectionAPI,
+	filter interface{}) ([]model.Note, *echo.HTTPError) {
+
 	var notes []model.Note
 
-	cursor, err := collection.Find(ctx, bson.M{"notebook_id": notebookId, "is_deleted": false})
+	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		log.Errorf("Unable to find the notes : %v", err)
 		return notes,
@@ -51,6 +57,10 @@ func FindNotes(ctx context.Context, collection dbInterface.CollectionAPI,
 		log.Errorf("Unable to read the cursor : %v", err)
 		return notes,
 			echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to parse retrieved notes"})
+	}
+
+	if notes == nil {
+		notes = []model.Note{}
 	}
 	return notes, nil
 }
@@ -58,22 +68,8 @@ func FindNotes(ctx context.Context, collection dbInterface.CollectionAPI,
 func FindNotesInTrash(ctx context.Context, collection dbInterface.CollectionAPI,
 	userId primitive.ObjectID) ([]model.Note, *echo.HTTPError) {
 
-	var notes []model.Note
+	return findNotesViaFilter(ctx, collection, bson.M{"user_id": userId, "is_deleted": true})
 
-	cursor, err := collection.Find(ctx, bson.M{"user_id": userId, "is_deleted": true})
-	if err != nil {
-		log.Errorf("Unable to find the notes : %v", err)
-		return notes,
-			echo.NewHTTPError(http.StatusNotFound, model.Response{Msg: "unable to find the notes"})
-	}
-
-	err = cursor.All(ctx, &notes)
-	if err != nil {
-		log.Errorf("Unable to read the cursor : %v", err)
-		return notes,
-			echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to parse retrieved notes"})
-	}
-	return notes, nil
 }
 
 func ModifyNote(ctx context.Context, collection dbInterface.CollectionAPI,

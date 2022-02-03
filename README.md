@@ -42,4 +42,4 @@ git clone git@github.com:go-study-projs/vue-evernote-api.git
 cd vue-evernote-api
 docker-compose up -d
 ```
-
+默认端口8080
