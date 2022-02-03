@@ -32,7 +32,7 @@ func (h NoteHandler) CreateNote(c echo.Context) error {
 		return utils.Json(c, http.StatusBadRequest, "Unable to validate request body.")
 	}
 
-	note.UserId = utils.ParseToken(c.Request().Header.Get("x-auth-token"))
+	note.UserId = utils.ParseToken(c)
 	notebookId, _ := primitive.ObjectIDFromHex(c.Param("notebookId"))
 	note.NotebookId = notebookId
 
@@ -111,7 +111,7 @@ func (h NoteHandler) RevertNote(c echo.Context) error {
 
 func (h NoteHandler) GetNotesInTrash(c echo.Context) error {
 
-	userId := utils.ParseToken(c.Request().Header.Get("x-auth-token"))
+	userId := utils.ParseToken(c)
 
 	notes, httpError := dao.FindNotesInTrash(context.Background(), h.Col, userId)
 	if httpError != nil {

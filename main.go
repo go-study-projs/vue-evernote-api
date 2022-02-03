@@ -73,9 +73,16 @@ func main() {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Pre(addCorrelationID)
 	jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
-		SigningKey:  []byte(cfg.JwtTokenSecret),
-		TokenLookup: "header:x-auth-token",
+		SigningKey: []byte(cfg.JwtTokenSecret),
 	})
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: `${time_rfc3339_nano} ${remote_ip} ${header:X-Correlation-ID} ${host} ${method} ${uri} ${user_agent} ` +
+			`${status} ${error} ${latency_human}` + "\n",
+	}))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowHeaders: []string{"*"},
+		MaxAge:       3600, //Access-Control-Max-Age,3600s内客户端只会发送一次pre-flight请求
+	}))
 
 	uh := &handler.UserHandler{Col: userCol}
 	e.POST("/auth/register", uh.CreateUser)

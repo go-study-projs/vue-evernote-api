@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -25,41 +24,11 @@ func init() {
 	}
 }
 
-func Json(c echo.Context, httpStatusCode int, args ...interface{} /* msg = ""  data = nil*/) error {
-
-	if len(args) > 2 {
-		log.Errorf("the number of args is wrong : %v.", args)
-		return toJson(c, http.StatusInternalServerError, "the number of args is wrong", nil)
-	}
-	r := &model.Response{Msg: "", Data: nil}
-	for i, v := range args {
-		switch i {
-		case 0: //msg
-			msg, ok := v.(string)
-			if !ok {
-				log.Errorf("%v is not passed as string", v)
-				return toJson(c, http.StatusInternalServerError, "msg is not passed as string", nil)
-			}
-			r.Msg = msg
-		case 1: //data
-			r.Data = v
-		default:
-			log.Errorf("unknown argument passed : %v.", v)
-			return toJson(c, http.StatusInternalServerError, "unknown argument passed", nil)
-		}
-	}
-	return toJson(c, httpStatusCode, r.Msg, r.Data)
-}
-
-func toJson(c echo.Context, httpStatusCode int, msg string, data interface{}) error {
-	return c.JSON(httpStatusCode, model.Response{Msg: msg, Data: data})
-}
-
 func CreateToken(u model.User) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["user_id"] = u.ID.String()
 	claims["user_name"] = u.Username
-	claims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 1500).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(prop.JwtTokenSecret))
 	if err != nil {
@@ -69,7 +38,9 @@ func CreateToken(u model.User) (string, error) {
 	return tokenString, nil
 }
 
-func ParseToken(tokenStringWithBearer string) (userId primitive.ObjectID) {
+func ParseToken(c echo.Context) (userId primitive.ObjectID) {
+	tokenStringWithBearer := c.Request().Header.Get(echo.HeaderAuthorization)
+
 	tokenString := strings.Split(tokenStringWithBearer, " ")[1]
 	return parsePureToken(tokenString)
 }
