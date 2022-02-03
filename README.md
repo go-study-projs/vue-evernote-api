@@ -38,7 +38,7 @@ golang + jwt + echo rest api + mongoDB + docker
 ## 运行
 
 ```shell
-git@github.com:go-study-projs/vue-evernote-api.git
+git clone git@github.com:go-study-projs/vue-evernote-api.git
 cd vue-evernote-api
 docker-compose up -d
 ```
