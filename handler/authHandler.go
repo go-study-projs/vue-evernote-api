@@ -47,41 +47,20 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 		return httpError
 	}
 
-	return utils.Json(c, http.StatusCreated, "注册成功", model.User{
-		ID:        resUser.ID,
-		Username:  resUser.Username,
-		CreatedAt: resUser.CreatedAt,
-		UpdatedAt: resUser.UpdatedAt,
+	token, err := utils.CreateToken(resUser)
+	if err != nil {
+		log.Errorf("Unable to generate the token.")
+		return utils.Json(c, http.StatusInternalServerError, "Unable to generate the token")
+
+	}
+	return utils.Json(c, http.StatusOK, "注册成功", map[string]interface{}{
+		"id":        resUser.ID,
+		"username":  resUser.Username,
+		"token":     token,
+		"createdAt": resUser.CreatedAt,
+		"updatedAt": resUser.UpdatedAt,
 	})
-
 }
-
-//func (h *UserHandler) AuthnUser(c echo.Context) error {
-//	var user model.User
-//	c.Echo().Validator = &userValidator{validator: v}
-//	if err := c.Bind(&user); err != nil {
-//		log.Errorf("Unable to bind to user struct.")
-//		return c.JSON(http.StatusUnprocessableEntity,
-//			model.ErrorMessage{Message: "Unable to parse the request payload."})
-//	}
-//	if err := c.Validate(user); err != nil {
-//		log.Errorf("Unable to validate the requested body.")
-//		return c.JSON(http.StatusBadRequest,
-//			model.ErrorMessage{Message: "Unable to validate request payload"})
-//	}
-//	user, httpError := dao.AuthenticateUser(context.Background(), user, h.Col)
-//	if httpError != nil {
-//		return c.JSON(httpError.Code, httpError.Message)
-//	}
-//	token, err := user.CreateToken()
-//	if err != nil {
-//		log.Errorf("Unable to generate the token.")
-//		return c.JSON(http.StatusInternalServerError,
-//			model.ErrorMessage{Message: "Unable to generate the token"})
-//	}
-//	c.Response().Header().Set("x-auth-token", "Bearer "+token)
-//	return c.JSON(http.StatusOK, model.User{Username: user.Username})
-//}
 
 func (h *UserHandler) Login(c echo.Context) error {
 	var user model.User
@@ -112,10 +91,11 @@ func (h *UserHandler) Login(c echo.Context) error {
 		return utils.Json(c, http.StatusInternalServerError, "Unable to generate the token")
 
 	}
-	//c.Response().Header().Set("x-auth-token", "Bearer "+token)
 	return utils.Json(c, http.StatusOK, "登录成功", map[string]interface{}{
-		"id":       storedUser.ID,
-		"username": storedUser.Username,
-		"token":    token,
+		"id":        storedUser.ID,
+		"username":  storedUser.Username,
+		"token":     token,
+		"createdAt": storedUser.CreatedAt,
+		"updatedAt": storedUser.UpdatedAt,
 	})
 }

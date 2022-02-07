@@ -1,6 +1,7 @@
-# vue-evernote-api
+# vue-evernote
 
-backend of vue-evernote
+一款仿印象笔记的 web app，此为后端代码
+前端代码见[这里]（github.com/go-study-projs/vue-evernote-client）
 
 ## 技术选型
 
@@ -42,4 +43,6 @@ git clone git@github.com:go-study-projs/vue-evernote-api.git
 cd vue-evernote-api
 docker-compose up -d
 ```
+
+后端服务默认端口8080
 
