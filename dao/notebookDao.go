@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-study-projs/vue-evernote-api/utils"
+
 	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/go-study-projs/vue-evernote-api/dbInterface"
@@ -48,24 +50,54 @@ func ModifyNoteBook(ctx context.Context,
 }
 
 func FindNotebooks(ctx context.Context, collection dbInterface.CollectionAPI,
-	userId primitive.ObjectID) ([]model.Notebook, *echo.HTTPError) {
+	userId primitive.ObjectID) ([]model.NotebookResponse, *echo.HTTPError) {
 
-	var notebooks []model.Notebook
+	var NotebookResponses []model.NotebookResponse
 
-	cursor, err := collection.Find(ctx, bson.M{"user_id": userId})
+	pipeline := utils.NewAggregatePipe().
+		Match(bson.M{"user_id": userId}).
+		LookupOne("note", "notes_info", "_id", "notebook_id").
+		//Project(bson.M{
+		//	"title":      "$title",
+		//	"created_at": "$created_at",
+		//	"updated_at": "$updated_at",
+		//	"user_id":    "$user_id",
+		//	"notes_info": bson.M{
+		//		"$filter": bson.M{
+		//			"input": "$notes_info",
+		//			"as":    "note_info",
+		//			"cond":  bson.M{"$eq": bson.A{"$$note_info.user_id", userId}}}},
+		//}).
+		Unwind("$notes_info").
+		Group(bson.M{
+			"_id":         "$_id",
+			"user_id":     bson.M{"$max": "$user_id"},
+			"note_counts": bson.M{"$sum": 1},
+			"title":       bson.M{"$max": "$title"},
+			"created_at":  bson.M{"$max": "$created_at"},
+			"updated_at":  bson.M{"$max": "$updated_at"}}).
+		QueryM()
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
+
 	if err != nil {
 		log.Errorf("Unable to find the notebooks : %v", err)
-		return notebooks,
+		return NotebookResponses,
 			echo.NewHTTPError(http.StatusNotFound, model.Response{Msg: "unable to find the notebooks"})
 	}
 
-	err = cursor.All(ctx, &notebooks)
+	err = cursor.All(ctx, &NotebookResponses)
 	if err != nil {
 		log.Errorf("Unable to read the cursor : %v", err)
-		return notebooks,
+		return NotebookResponses,
 			echo.NewHTTPError(http.StatusUnprocessableEntity, model.Response{Msg: "unable to parse retrieved notebooks"})
 	}
-	return notebooks, nil
+
+	if NotebookResponses == nil {
+		NotebookResponses = []model.NotebookResponse{}
+	}
+
+	return NotebookResponses, nil
 }
 
 func DeleteNoteBook(ctx context.Context, collection dbInterface.CollectionAPI,

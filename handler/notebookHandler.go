@@ -20,14 +20,14 @@ type NotebookHandler struct {
 }
 
 func (h *NotebookHandler) GetNotebooks(c echo.Context) error {
-	userId := utils.ParseToken(c.Request().Header.Get("x-auth-token"))
+	userId := utils.ParseToken(c)
 
-	notebooks, httpError := dao.FindNotebooks(context.Background(), h.Col, userId)
+	notebookResponses, httpError := dao.FindNotebooks(context.Background(), h.Col, userId)
 	if httpError != nil {
-		return c.JSON(httpError.Code, httpError.Message)
+		return httpError
 	}
 
-	return c.JSON(http.StatusOK, notebooks)
+	return utils.Json(c, http.StatusOK, "获取笔记本列表成功", notebookResponses)
 }
 
 func (h *NotebookHandler) CreateNotebook(c echo.Context) error {
@@ -43,7 +43,7 @@ func (h *NotebookHandler) CreateNotebook(c echo.Context) error {
 		log.Errorf("Unable to validate the requested body.")
 		return utils.Json(c, http.StatusBadRequest, "Unable to validate request body.")
 	}
-	notebook.UserId = utils.ParseToken(c.Request().Header.Get("x-auth-token"))
+	notebook.UserId = utils.ParseToken(c)
 	resNotebook, httpError := dao.InsertNotebook(context.Background(), notebook, h.Col)
 	if httpError != nil {
 		return httpError
