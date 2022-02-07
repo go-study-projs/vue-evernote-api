@@ -1,7 +1,7 @@
 # vue-evernote
 
 一款仿印象笔记的 web app，此为后端代码
-前端代码见[这里]（github.com/go-study-projs/vue-evernote-client）
+前端代码见[这里](https://github.com/go-study-projs/vue-evernote-client)
 
 ## 技术选型
 
