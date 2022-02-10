@@ -62,7 +62,7 @@ func AuthenticateUser(ctx context.Context, collection dbInterface.CollectionAPI,
 	if err == mongo.ErrNoDocuments {
 		log.Errorf("User %s does not exist.", reqUser.Username)
 		return storedUser,
-			echo.NewHTTPError(http.StatusNotFound, model.Response{Msg: "User does not exist"})
+			echo.NewHTTPError(http.StatusBadRequest, model.Response{Msg: "User does not exist"})
 	}
 	//validate the password
 	if !isCredValid(reqUser.Password, storedUser.Password) {
