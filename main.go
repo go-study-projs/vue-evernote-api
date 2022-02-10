@@ -69,6 +69,7 @@ func init() {
 func main() {
 	e := echo.New()
 	e.Logger.SetLevel(log.DEBUG)
+	e.HideBanner = true
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Pre(addCorrelationID)
